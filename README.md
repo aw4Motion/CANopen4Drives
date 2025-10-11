@@ -9,7 +9,21 @@ The libray implements CAN in Automation (CiA) 301 services for classic CANopen.
 - global service
   - SYNC generation
   
-All of these regsiter at the single MsgHandler which calls the upper layers vis call-back.
+All of these register at the single MsgHandler which calls the upper layers vis call-back.
+
+                               examples
+                                  |
+                        ------CO402Drive----
+    ------              |         |        |
+    |                   |  OPDOHandler     |
+    |                   |  |    |          |
+    |              ---CONode    |          |
+    |              |       |    |          |
+    |       COSDOHandler   |    |     COSyncHandler
+    |       |              |    |         |
+    |       ---------->COMsgHandler<-------   
+    |----                      |
+                            UNOR4CAN
 
 So far there is no LSS service implemented. Node-id and baud rate need to be preset.
 
@@ -19,7 +33,7 @@ can and will be configured by this central device.
 On top of this CiA 301 stack a handler for a CiA 402 servo drive is implemented which uses the 
 per node services to enable/diable the drive (behavior implemented) and move in the different OpModes.
 
-No other device prefiles have been provided so far but would be straight forward in case of a CiA 401 I/O node.
+No other device profiles have been provided so far but would be straight forward in case of a CiA 401 I/O node.
 
 A sample implementation consists of
 - a single instance of the COMsgHandler
@@ -30,11 +44,22 @@ A sample implementation consists of
 
 UNO R4 Minima and WiFi, likely NANO R4
 
+For an R4 Wifi it's D10: CANTX0 --> MCP2551::pin 1
+                    D13: CANRX0 <-- MCP2551::Pin 4
+				   
+For an R4 Mini it's D04: CANTX0 --> MCP2551::pin 1
+                    D05: CANRX0 <-- MCP2551::Pin 4				   
+
+
 ## Documentation
 
 See the included example sketches
 If controlling multiple remote nodes take care to configure them one by one as the non-buffered Tx might
 otherwise be overloaded. 
+
+The complete library is implemented in an non-blocking pattern, where the calls on all levels will return directls and
+the return code will tell whether they already finished. Therefore it's simple to run them "in parallel" to whatever activity
+from the loop.
 
 ## Limitations
 
