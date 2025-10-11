@@ -1,19 +1,40 @@
-#include <COMsgHandler.h>
-#include <CO402Drive.h>
-#include <COSyncHandler.h>
-#include <COTestCycle.h>
-
-/*----------------------------------------------------------------------
+/*
+ * Copyright (c) 2025 by Andreas Wagener (AW)
+ * CANopen central device library for Arduino UNO R4.
  *
- * CODrivesCycle_A
+ * This file is free software; you can redistribute it and/or modify
+ * it under the terms of either the GNU General Public License version 2
+ * or the GNU Lesser General Public License version 2.1, both as
+ * published by the Free Software Foundation.
+ 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+ */
+ 
+ /*----------------------------------------------------------------------
+ *
+ * CODrivesCycle_B
  *
  * use 4 drives and cycle them in a fixed cycle
  *
  * 2025-08-23 AW
- * 2025-09-03 AW reset the cayle if a node fails
- *               testcycle moved into a class
+ * 2025-09-03 AW reset the cyle if a node fails
+ *               test cycle moved into a class
  *
  *------------------------------------------------------------------------*/
+
+//---- includes -----------------------------------------------------------
+#include <CO402Drive.h>
+#include <COSyncHandler.h>
+#include <COTestCycle.h>
+
+//---- local definitions ---------------------------------------------------
 
 #define DEBUG_Master_Node  0x0001
 #define DEBUG_Master_Sync  0x0002
@@ -21,6 +42,8 @@
 #define DEBUG_Master_Steps 0x0008
 
 #define DEBUG_Master (DEBUG_Master_Node | DEBUG_Master_Sync | DEBUG_Master_Init)
+
+//------ select the type of node guarding -----------------------------
 
 #define UseNodeGuarding
 //#define UseHeartBeat
