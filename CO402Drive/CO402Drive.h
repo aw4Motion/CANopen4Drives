@@ -44,6 +44,9 @@ const int8_t OpModePP = 1;
 const int8_t OpModePV = 3;
 const int8_t OpModeHoming = 6;
 
+const uint8_t NumDriveIdentityObjects = 4;
+const uint8_t DriveOdStringLen = 32;
+
 typedef enum CODriveCommStates {
 	eCO_DriveIdle,
 	eCO_DriveWaiting,
@@ -127,7 +130,7 @@ class CO402Drive {
 		bool autoEnable = false;
 	  bool isPDOsConfigured = false;
 		bool reConfigPDOs = true;
-		bool auteResetErrors = true;
+		bool autoResetErrors = true;
 		
     //--- the actual default OD etnries -------------------------
     ODEntryString OdDevice = {0x1008,0x00,DeviceName,32};
@@ -135,7 +138,7 @@ class CO402Drive {
     ODEntryString OdSwVersion = {0x100a,0x00,SwVersion,32};
     ODEntryString OdMotor = {0x6403,0x00,MotorName,32};
 		
-		ODEntry *IdentityEntries[4] = {(ODEntry *)&OdDevice, 
+		ODEntry *IdentityEntries[NumDriveIdentityObjects] = {(ODEntry *)&OdDevice, 
 		                               (ODEntry *)&OdHwVersion, 
 		                               (ODEntry *)&OdSwVersion, 
 		                               (ODEntry *)&OdMotor};
@@ -146,8 +149,7 @@ class CO402Drive {
     ODEntry16 OdCW = {0x6040,0x00,&CWValue,2};
     ODEntry16 OdSW = {0x6041,0x00,&SWValue,2};
 
-    ODEntry16 OdErrorWprd = {0x6041,0x00,&ErrorWord,2};
-    ODEntry08 OdDigInStatus = {0x6060,0x00,&DigInStatus,1};
+    ODEntry16 OdErrorWord = {0x6041,0x00,&ErrorWord,2};
 
     ODEntry32 OdTargetPos = {0x607A,0x00,(uint32_t *)&TargetPos,4};
     ODEntry32 OdActPos = {0x6064,0x00,(uint32_t *)&ActPos,4};

@@ -84,9 +84,9 @@ CO402Drive::CO402Drive(uint8_t thisId)
 
 	uint8_t AccessStep = 0;
 	
-	for(uint8_t iter = 0; iter < 4; iter++)
+	for(uint8_t iter = 0; iter < NumDriveIdentityObjects; iter++)
 	{
-	  for(uint8_t charIdx = 0; charIdx < 32; charIdx++)
+	  for(uint8_t charIdx = 0; charIdx < DriveOdStringLen; charIdx++)
 		{
 	    ((ODEntryString *)IdentityEntries[iter])->Value[charIdx] = 0;
 		}
@@ -290,7 +290,7 @@ CODriveCommStates CO402Drive::Enable()
   CODriveCommStates returnValue = eCO_DriveBusy;
 	uint16_t newCWValue = CWValue;
 	
-	if(auteResetErrors == true)
+	if(autoResetErrors == true)
 		ResetError();
 
 	//step for step state machine until enabled
@@ -889,7 +889,7 @@ CODriveCommStates CO402Drive::IdentifyDrive()
 {
 	CODriveCommStates returnValue = eCO_DriveBusy;
 	
-  if(Node.RWSDO.ReadObjects(IdentityEntries, 4) == eCO_SDODone)
+  if(Node.RWSDO.ReadObjects(IdentityEntries, NumDriveIdentityObjects) == eCO_SDODone)
 		returnValue = eCO_DriveDone;
 
 	return returnValue;
@@ -1236,7 +1236,7 @@ CODriveCommStates CO402Drive::GetNumObject(ODEntry08 *Object)
 	CODriveCommStates returnValue = eCO_DriveBusy;
 	
 	//check for is being mapped to PDO
-	if(PDOHandler.TxPDOsAsync((ODEntry *)Object))
+	if(PDOHandler.RxPDOIsSync((ODEntry *)Object))
 	{
 		#if(DEBUG_DRIVE & DEBUG_DRIVE_READBJ)
 		Serial.print("Drive: Idx ");
@@ -1286,7 +1286,7 @@ CODriveCommStates CO402Drive::GetNumObject(ODEntry16 *Object)
 	CODriveCommStates returnValue = eCO_DriveBusy;
 	
 	//check for is being mapped to PDO
-	if(PDOHandler.TxPDOsAsync((ODEntry *)Object))
+	if(PDOHandler.RxPDOIsSync((ODEntry *)Object))
 	{
 		#if(DEBUG_DRIVE & DEBUG_DRIVE_READBJ)
 		Serial.print("Drive: Idx ");
@@ -1335,7 +1335,7 @@ CODriveCommStates CO402Drive::GetNumObject(ODEntry32 *Object)
 	CODriveCommStates returnValue = eCO_DriveBusy;
 	
 	//check for is being mapped to PDO
-	if(PDOHandler.TxPDOsAsync((ODEntry *)Object))
+	if(PDOHandler.RxPDOIsSync((ODEntry *)Object))
 	{
 		#if(DEBUG_DRIVE & DEBUG_DRIVE_READBJ)
 		Serial.print("Drive: Idx ");
