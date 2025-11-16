@@ -75,6 +75,8 @@ typedef enum PDODir {
 	eCO_PDOTx
 } PDODir;
 
+const uint8_t TPDOTTypeAsync = 255;
+
 	
 class COPDOHandler {
 	public:
@@ -107,9 +109,11 @@ class COPDOHandler {
 	  COPDOCommStates ModifyTxPDOMapping(uint8_t, uint8_t, ODEntry **);
 	
 	  bool TxPDOsAsync(ODEntry *);
+		bool RxPDOIsSync(ODEntry *);
 	
 		void ResetComState(); 
 		void ResetSDOState();
+		void SetPDOConfigTimeout(uint32_t);
 		
 		COSDOCommStates  GetSDOComState();
 		
@@ -136,7 +140,7 @@ class COPDOHandler {
 
 		uint8_t BusyRetryCounter = 0;
 		uint8_t BusyRetryMax = 1;
-	
+	  uint32_t PDOConfigTimeout = 20;
 	  uint8_t nextTx = 0;
 	
 	  COPDOCommStates ConfigureRxTxPDO(uint16_t, PDOTransmType *, PDOMapping *, uint32_t);

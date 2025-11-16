@@ -45,7 +45,7 @@
 
 //this is an ultimate measure
 //might be delayed due to the Serial commands 
-const uint32_t SDORespTimeOut = 20;
+const uint32_t SDORespTimeOut = 50;
 
 //--- public calls ---
 

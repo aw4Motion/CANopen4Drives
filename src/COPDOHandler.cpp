@@ -34,7 +34,7 @@
 
 #define DEBUG_PDO_ERROR		0x0001
 #define DEBUG_PDO_TXAsync	0x0002
-#define DEBUG_PDO_TXSync	0x0004
+#define DEBUG_PDO_RXSync	0x0004
 #define DEBUG_PDO_TXMsg   0x0008
 
 #define DEBUG_PDO_RX	    0x0010
@@ -58,8 +58,6 @@ const uint8_t PDOComSettingsSubIdxInhTime = 03;
 const uint8_t PDOComSettingsSubIdxEvtTimer = 05;
 
 const uint32_t PDOInvalidFlag = 0x80000000;
-
-const uint32_t SDORespTimeOut = 20;
 
 //--- public functions ---
 
@@ -203,6 +201,18 @@ void COPDOHandler::ResetComState()
 	//Handler should not be reset, as it could be used by different
 	//instances of the Drive
 }
+
+
+/*----------------------------------------------
+ * void COPDOHandler::SetPDOConfigTimeout(uint32_t value)
+ * allow for longer response times for slow devices
+ * 
+ * 2025-11-11 AW
+ * ---------------------------------------------*/
+void COPDOHandler::SetPDOConfigTimeout(uint32_t value)
+{
+  PDOConfigTimeout = value;
+}	
 
 /*----------------------------------------------
  * void COPDOHandler::FlagPDOsInvalid()
@@ -665,7 +675,7 @@ COPDOCommStates COPDOHandler::ConfigureRxTxPDO(uint8_t PdoNr, PDODir Dir, uint32
 		Serial.println(" has an error. Stopped!");
 		#endif
 	}	
-	if((actTime - RequestSentAt) > SDORespTimeOut)
+	if((actTime - RequestSentAt) > PDOConfigTimeout)
 	  returnValue = eCO_PDOError;	
   
 	return returnValue;
@@ -674,7 +684,7 @@ COPDOCommStates COPDOHandler::ConfigureRxTxPDO(uint8_t PdoNr, PDODir Dir, uint32
 /*--------------------------------------------------------------
  * COPDOCommStates COPDOHandler::TxPDOsAsync(ODEntry *entry)
  *
- * check whehter entry is mapped into a RxPDO and triger its transmission if so
+ * check whether entry is mapped into a RxPDO and triger its transmission if async
  * to have it transmitted it gets entered into a list of PDOs to be sent for this node
  * 
  * 2025-07-12 AW frame
@@ -690,21 +700,70 @@ bool COPDOHandler::TxPDOsAsync(ODEntry *entry)
 		Serial.print("PDO: Check RxPDO");
 		Serial.println(iterPDO+1);
 		#endif
-	  for(uint8_t iterEntry = 0; iterEntry < RxPDOMapping[iterPDO].NrEntries; iterEntry++)
+		
+		//now check every mapped entry
+		for(uint8_t iterEntry = 0; iterEntry < RxPDOMapping[iterPDO].NrEntries; iterEntry++)
 		{
-		  #if (DEBUG_PDO & DEBUG_PDO_TXAsync)
-		  Serial.print("PDO: Check Entry ");
-		  Serial.println(iterEntry);
+			#if (DEBUG_PDO & DEBUG_PDO_TXAsync)
+			Serial.print("PDO: Check Entry ");
+			Serial.print(iterEntry);
+			Serial.print(":");
+			Serial.println((RxPDOMapping[iterPDO].Entries[iterEntry])->Idx, HEX);
 			#endif
-		  if(RxPDOMapping[iterPDO].Entries[iterEntry] == entry)
+			if(RxPDOMapping[iterPDO].Entries[iterEntry] == entry)
 			{
 				//add this one to the list for sending
-			  RxPDOSettings[iterPDO].pending++;
+				//only PDOs configured to be asyc get flagged
+		    if(RxPDOSettings[iterPDO].TransmType == TPDOTTypeAsync)
+				  RxPDOSettings[iterPDO].pending++;
+				
 				returnValue = true;
 				
 				#if (DEBUG_PDO & DEBUG_PDO_TXAsync)
 				Serial.print("PDO: will Tx RxPDO");
-  		  Serial.println(iterPDO+1);  
+				Serial.println(iterPDO+1);  
+				#endif
+			}
+		}
+	}
+	return returnValue;
+}
+
+/*--------------------------------------------------------------
+ * bool COPDOHandler::RxPDOIsSync(ODEntry *entry)
+ *
+ * check whether entry is mapped into a sync TxPDO 
+ * 
+ * 2025-11-16 AW frame
+ * --------------------------------------------------------------*/
+
+bool COPDOHandler::RxPDOIsSync(ODEntry *entry)
+{
+	bool returnValue = false;
+	
+  for(uint8_t iterPDO = 0; iterPDO < NrPDOs; iterPDO++)
+	{
+		#if (DEBUG_PDO & DEBUG_PDO_RXSync)
+		Serial.print("PDO: Check TxPDO");
+		Serial.println(iterPDO+1);
+		#endif
+		
+		//now check every mapped entry
+		for(uint8_t iterEntry = 0; iterEntry < TxPDOMapping[iterPDO].NrEntries; iterEntry++)
+		{
+			#if (DEBUG_PDO & DEBUG_PDO_RXSync)
+			Serial.print("PDO: Check Entry ");
+			Serial.print(iterEntry);
+			Serial.print(":");
+			Serial.println((TxPDOMapping[iterPDO].Entries[iterEntry])->Idx, HEX);
+			#endif
+			if(TxPDOMapping[iterPDO].Entries[iterEntry] == entry)
+			{				
+				returnValue = true;
+				
+				#if (DEBUG_PDO & DEBUG_PDO_RXSync)
+				Serial.print("PDO: will be Rx sync");
+				Serial.println(iterPDO+1);  
 				#endif
 			}
 		}
@@ -1152,6 +1211,11 @@ COPDOCommStates COPDOHandler::WriteObject(uint16_t Idx, uint8_t SubIdx, uint32_t
 			//the object to be written is the 0x1600 for TxPDO1, ...
 		  //todo: check whether ObjValue and ObjLenght would have to be class members
 			SDORxTxState = Node->RWSDO.WriteSDO((ODEntry *)&Object);
+		  #if (DEBUG_PDO & DEBUG_PDO_Init) 
+  		Serial.print(".. returns ");
+		  Serial.println(SDORxTxState);
+		  #endif
+		
 			break;
 		case eCO_SDODone:
 			//access was successful
@@ -1164,7 +1228,7 @@ COPDOCommStates COPDOHandler::WriteObject(uint16_t Idx, uint8_t SubIdx, uint32_t
 			break;
 	} //end of the configuration of a single RxPDO		
 				
-	if((actTime - RequestSentAt) > SDORespTimeOut)
+	if((actTime - RequestSentAt) > PDOConfigTimeout)
 	  returnValue = eCO_PDOError;	
 		
 	return returnValue;
