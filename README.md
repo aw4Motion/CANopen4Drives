@@ -13,7 +13,7 @@ All of these register at the single MsgHandler which calls the upper layers vis 
 
                                examples
                                   |
-                        ------CO402Drive----
+                      --CO402Drive--CO401Node--
     ------              |         |        |
     |                   |  OPDOHandler     |
     |                   |  |    |          |
