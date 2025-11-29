@@ -70,6 +70,8 @@ transmission is reported back and the different services of the CANopen 301 libr
 ## Testing
 
 Tested using a with an MCP2551 CAN bus transceiver chip at 250kbps 
-C1A 402 Servodrive tested against 1 ... 4 FAULHABER MC 3603 S RS/CO MotionController.
-CiA 401 I/O-Node tested against 1 x BK5120 + digital and analog I/Os
+
+>>CiA 402 Servodrive tested against 1 ... 4 FAULHABER MC 3603 S RS/CO MotionController.
+
+>>CiA 401 I/O-Node tested against 1 x BK5120 + digital and analog I/Os.
 
