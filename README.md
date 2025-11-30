@@ -30,15 +30,18 @@ So far there is no LSS service implemented. Node-id and baud rate need to be pre
 NMT and PDOs are configured on boot-up using the SDO service. PDO mappings and transmission types
 can and will be configured by this central device.
   
-On top of this CiA 301 stack a handler for a CiA 402 servo drive is implemented which uses the 
-per node services to enable/diable the drive (behavior implemented) and move in the different OpModes.
+On top of this CiA 301 stack there is a handler for a CiA 402 servo drive is implemented which uses the 
+per node services to enable/diable the drive (behavior implemented) and move in the different OpModes. So the drive behavior is actually covered. Add whatever OD entries in your local copy.
 
-No other device profiles have been provided so far but would be straight forward in case of a CiA 401 I/O node.
+Recently I added and testd the CiA 401 Node. Pretty straight forward. No real behavio yet. In future I might add methods to directly configure the optional behavior of the I/Os.
 
 A sample implementation consists of
 - a single instance of the COMsgHandler
 - if using the CO402Drive it's an instance of this class per remote drive
+- if using the CONode401 then an instance of this per remote node
 - a single instance of the COSyncHandler
+
+All of them being instanced in your code or class. See the examples provied on how to do that.
 
 ## Hardware
 
